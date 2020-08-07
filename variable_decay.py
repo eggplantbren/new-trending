@@ -38,9 +38,14 @@ def trending_score(height, data, chunk_blocks=10):
     # Get totals of supports, converted to LBC
     ys = [row[3]/1E8 for row in data[::-1]]
 
+    # Cumulative sum
+    tots = [ys[0]]
+    for i in range(1, len(ys)):
+        tots.append(ys[i])
+
     # Sum all the exponential kernels
     trending = 0.0
-    for t, y in zip(ts, ys):
+    for t, y, tot in zip(ts, ys, tots):
 
         # Kernel amplitude, start time and decay rate
         amp = soften(y)

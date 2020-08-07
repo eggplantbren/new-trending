@@ -1,18 +1,19 @@
 """
 Run the same tests as in the older version.
 """
-
+import matplotlib.pyplot as plt
 from variable_decay import trending_score
 
 class Claim:
     """
     Represent a claim and a pattern of support
     """
+    all_claims = []
 
-    def __init__(self, name, support_interval, support_lbc):
+    def __init__(self, name, supports):
         self.name = name
-        self.support_interval = support_interval
-        self.support_lbc = support_lbc
+        self.supports = supports
+        Claim.all_claims.append(self)
 
     def generate_data(self, start_height, end_height, chunk_blocks=10):
         """
@@ -20,18 +21,18 @@ class Claim:
         """
         data = []
 
-        supports = []
         for height in range(start_height, end_height + 1):
+
+            # Supports due this block
+            supports = [1E8*s[1] for s in self.supports if s[0] == height]
+
             if height % chunk_blocks == 0:
-                if height > 0:
+                if len(supports) > 0:
                      # height, max, min, sum, count, unique
                     row = [height,
                            max(supports), min(supports), sum(supports),
                            len(supports), 1]
                     data.append(row)
-            # Add supports
-            if height % self.support_interval == 0:
-                supports.append(int(1E8*self.support_lbc))
 
         return data
 
@@ -39,11 +40,20 @@ class Claim:
         data = self.generate_data(0, 1000)
         heights = [h for h in range(start_height, end_height+1001)]
         trending_scores = [trending_score(h, data) for h in heights]
-        import matplotlib.pyplot as plt
-        plt.plot(heights, trending_scores)
-        plt.show()
+        plt.plot(heights, trending_scores, label=self.name)
 
 if __name__ == "__main__":
-    minnow = Claim("minnow", 1, 1)
-    minnow.plot_trending(0, 1000)
+
+    # Time interval to plot
+    start_height, end_height = 0, 1000
+
+    Claim("Popular Minnow", [(h, 1.0) for h in range(400)])
+    Claim("Dolphin", [(0, 1.0E4)])
+    Claim("Blue Whale", [(0, 5.0E5)])
+    for claim in Claim.all_claims:
+        claim.plot_trending(start_height, end_height)
+    plt.legend()
+    plt.xlim(left=0.0)
+    plt.ylim(bottom=0.0)
+    plt.show()
 
