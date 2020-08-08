@@ -1,7 +1,6 @@
 import math
 
-DECAY_TIMESCALE = 200.0
-DECAY_COEFFICIENT = math.exp(-1.0/DECAY_TIMESCALE)
+DECAY_TIMESCALE = 300.0
 
 def trending(heights, lbc):
     """
@@ -12,7 +11,10 @@ def trending(heights, lbc):
         gap  = heights[i] - heights[i-1]
         mag  = abs(lbc[i]**0.25 - lbc[i-1]**0.25)
         sign = 1.0 if lbc[i] > lbc[i-1] else -1.0
-        ys.append(DECAY_COEFFICIENT*ys[-1] + mag*sign)
+        rate = 1.0/DECAY_TIMESCALE
+        if lbc[i] >= 100.0:
+            rate *= 1.0 + math.log10(lbc[i]/100.0)
+        ys.append(math.exp(-rate)*ys[-1] + mag*sign)
     return ys
 
 if __name__ == "__main__":
