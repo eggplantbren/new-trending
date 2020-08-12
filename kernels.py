@@ -23,7 +23,7 @@ class Kernel:
         if self.lbc <= 100.0:
             power = 1.0
         else:
-            power = 1.0 + math.log10(self.lbc/100.0)
+            power = 1.0 + math.log2(self.lbc/100.0)
 
         # Create the kernel
         frac = []
