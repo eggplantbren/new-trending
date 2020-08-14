@@ -17,7 +17,7 @@ class Kernel:
         self.t0, self.old_lbc, self.new_lbc = t0, old_lbc, new_lbc
 
         # Derived parameters
-        self.delay = self.new_lbc**0.4
+        self.delay = int(self.new_lbc**0.4)
         self.t_peak = self.t0 + self.delay
         self.t_final = self.t_peak + DECAY_TIME
         self.y_peak = new_lbc**SOFTEN_POWER - old_lbc**SOFTEN_POWER
@@ -42,66 +42,79 @@ class Kernel:
         # Multiply in amplitude, also do the power
         return self.y_peak*f**self.power
 
+    def __str__(self):
+        d = dict(t0=self.t0, t1=self.t_peak, t2=self.t_final,
+                 A=self.y_peak, delta=self.delay, ell=DECAY_TIME)
+        return d.__str__()
+
 
 class Claim:
     def __init__(self):
         self.heights = []
         self.lbc = []
         self.kernels = []
-        self.trending = []
 
     def update(self, height, lbc):
         assert len(self.heights) == 0 or height > self.heights[-1]
+
         old_lbc = 0.0
         if len(self.lbc) > 0:
             old_lbc = self.lbc[-1]
 
+        # Add the next kernel
         self.heights.append(height)
         self.lbc.append(lbc)
         self.kernels.append(Kernel(height, old_lbc, lbc))
-
-        if len(self.trending) == 0:
-            self.trending.append([height, self.sum_kernels(height)])
-        else:
-            # Calculate trending scores up to present height
-            for h in range(self.trending[-1][0]+1, height+1):
-                self.trending.append([h, self.sum_kernels(h)])
-
-    def finalise(self, height):
-        # Extend trending scores out to the given height
-        for h in range(self.trending[-1][0]+1, height+1):
-            self.trending.append([h, self.sum_kernels(h)])
 
     def sum_kernels(self, height):
         return sum([k.evaluate(height) for k in self.kernels])
 
 # Simulate trending scores
-claims = dict(minnow=Claim(), dolphin=Claim(), whale=Claim())
+claims = dict(minnow=Claim(), dolphin=Claim(), moderate_whale=Claim(),
+              huge_whale=Claim(), huge_whale_botted=Claim())
+trending = dict()
+for name in claims:
+    trending[name] = []
 
 heights = range(1000)
 for height in heights:
+
+    # All claims start at 0.1 LBC
     if height == 0:
-        claims["minnow"].update(0, 1E-1)
-        claims["dolphin"].update(0, 1E+4)
-        claims["whale"].update(0, 3E+5)
-    else:
-        claims["minnow"].update(height, claims["minnow"].lbc[-1] + 1.0)
-
-    if height == 500:
-
-        # Remove all supports
         for name in claims:
+            claims[name].update(height, 0.1)
+
+    # Minnow and botted whale are continually boosted
+    if height > 0:
+        claims["minnow"].update(height, claims["minnow"].lbc[-1] + 1.0)
+        claims["huge_whale_botted"].update(height, claims["huge_whale_botted"].lbc[-1] + 1E6/400)
+
+    # Others are boosted once at block 1
+    if height == 1:
+        for name in claims:
+            if name == "dolphin":
+                claims[name].update(height, claims[name].lbc[-1] + 10000.0)
+            if name == "moderate_whale":
+                claims[name].update(height, claims[name].lbc[-1] + 100000.0)
+            if name == "huge_whale":
+                claims[name].update(height, claims[name].lbc[-1] + 1000000.0)
+
+    # Remove all supports at a certain block
+    if height == 400:
+        for name in claims:
+            claims[name].lbc[-1] = claims[name].lbc[0]
             claims[name].kernels = claims[name].kernels[0:1]
 
-for name in claims:
-    claims[name].finalise(heights[-1])
+    for name in claims:
+        trending[name].append([height, claims[name].sum_kernels(height)])
+
 
 for name in claims:
-    claim = claims[name]
-    trending = np.array(claim.trending)
-    plt.plot(trending[:,0], trending[:,1], label=name)
+    trend = np.array(trending[name])
+    plt.plot(trend[:,0], trend[:,1], "-", label=name)
+plt.ylim(bottom=0.0)
+plt.xlim([heights[0]-1, heights[-1]+1])
 plt.legend()
-plt.xlabel("Height")
-plt.ylabel("Trending Score")
 plt.show()
+
 
