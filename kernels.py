@@ -5,6 +5,7 @@ but have different shapes when the LBC values are different.
 
 import math
 import matplotlib.pyplot as plt
+import numpy as np
 
 DECAY_TIME = 500
 DELAY_POWER = 0.4
@@ -59,13 +60,25 @@ class Claim:
         self.lbc.append(lbc)
         self.kernels.append(Kernel(height, old_lbc, lbc))
 
-    def evaluate_sum_of_kernels(self, height):
+        if len(self.trending) == 0:
+            self.trending.append([height, self.sum_kernels(height)])
+        else:
+            # Calculate trending scores up to present height
+            for h in range(self.trending[-1][0]+1, height+1):
+                self.trending.append([h, self.sum_kernels(h)])
+
+    def finalise(self, height):
+        # Extend trending scores out to the given height
+        for h in range(self.trending[-1][0]+1, height+1):
+            self.trending.append([h, self.sum_kernels(h)])
+
+    def sum_kernels(self, height):
         return sum([k.evaluate(height) for k in self.kernels])
 
 # Simulate trending scores
 claims = dict(minnow=Claim(), dolphin=Claim(), whale=Claim())
 
-heights = range(1001)
+heights = range(1000)
 for height in heights:
     if height == 0:
         claims["minnow"].update(0, 1E-1)
@@ -73,11 +86,13 @@ for height in heights:
         claims["whale"].update(0, 3E+5)
     else:
         claims["minnow"].update(height, claims["minnow"].lbc[-1] + 1.0)
+for name in claims:
+    claims[name].finalise(heights[-1])
 
 for name in claims:
     claim = claims[name]
-    trending = [claim.evaluate_sum_of_kernels(h) for h in heights]
-    plt.plot(heights, trending, label=name)
+    trending = np.array(claim.trending)
+    plt.plot(trending[:,0], trending[:,1], label=name)
 plt.legend()
 plt.xlabel("Height")
 plt.ylabel("Trending Score")
