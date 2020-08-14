@@ -86,6 +86,13 @@ for height in heights:
         claims["whale"].update(0, 3E+5)
     else:
         claims["minnow"].update(height, claims["minnow"].lbc[-1] + 1.0)
+
+    if height == 500:
+
+        # Remove all supports
+        for name in claims:
+            claims[name].kernels = claims[name].kernels[0:1]
+
 for name in claims:
     claims[name].finalise(heights[-1])
 
