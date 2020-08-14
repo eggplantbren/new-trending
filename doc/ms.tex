@@ -1,0 +1,67 @@
+\documentclass[a4paper, 12pt]{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{color}
+\usepackage{dsfont}
+\usepackage[left=1.5cm, right=1.5cm, bottom=2cm, top=2cm]{geometry}
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+\usepackage{microtype}
+\usepackage{natbib}
+\definecolor{ao(english)}{rgb}{0.0, 0.5, 0.0}
+
+\newcommand{\bjb}{\color{ao(english)}}
+\newcommand{\btheta}{\boldsymbol{\theta}}
+\newcommand{\given}{\,|\,}
+
+\title{Kernel-Based LBRY Trending}
+\author{Brendon J. Brewer}
+\date{}
+
+\begin{document}
+\maketitle
+
+%\abstract{\noindent For Kevin Knuth.}
+
+% Need this after the abstract
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{8pt}
+
+Consider an LBC change from $x$ to $x'$ which occurs at time (height) $t_0$.
+At the moment, assume positive changes only, i.e., $x' > x$.
+Let $\delta$ be the delay, so the kernel peaks at time $t_1 = t_0 + \delta$.
+The kernel then returns to zero at time $t_2 = t_1 + \ell$.
+
+Let the kernel due to this LBC change be of the form
+\begin{align}
+K(t) &=
+    \left\{
+        \begin{array}{lr}
+            0, & t < t_0 \\
+            A\left(\frac{t - t_0}{\delta}\right)^\alpha, & t_0 \leq t < t_1 \\
+            A\left(\frac{t_2 - t}{\ell}  \right)^\alpha, & t_1 \leq t < t_2 \\
+            0, & t \geq t_2.
+        \end{array}
+    \right.
+\end{align}
+
+The integral of the rising part of the kernel is
+\begin{align}
+I_{\rm rise}
+  &= \int_{t_0}^{t_1}A\left(\frac{t - t_0}{\delta}\right)^\alpha \, dt \\
+  &= A\delta^{-\alpha}\frac{\delta^{\alpha+1}}{\alpha + 1} \\
+  &= \frac{A\delta}{\alpha + 1}.
+\end{align}
+Similarly, for the falling part, it is
+\begin{align}
+I_{\rm fall}
+  &= \frac{A\ell}{\alpha + 1}.
+\end{align}
+The total integral is therefore
+\begin{align}
+I &= I_{\rm rise} + I_{\rm fall} \\
+  &= \frac{A(\ell + \delta)}{\alpha + 1}.
+\end{align}.
+
+\end{document}
+
