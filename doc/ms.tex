@@ -51,6 +51,13 @@ distributions is
 \int_0^1 x^{\alpha-1}(1-x)^{\beta-1} \, dx
     &= \frac{\Gamma(\alpha)\Gamma(\beta)}{\Gamma(\alpha+\beta)}.
 \end{align}
+When $\beta=1$, this reduces to
+\begin{align}
+\int_0^1 x^{\alpha-1}(1-x)^{\beta-1} \, dx
+    &= \frac{\Gamma(\alpha)}{\Gamma(\alpha+1)} \\
+    &= \frac{1}{\alpha}.
+\end{align}
+
 
 The integral of the rising part of the kernel is
 \begin{align}
@@ -71,39 +78,20 @@ can be obtained similarly. The total integral is
 Z &= \frac{A(\delta + \ell)}{\alpha}
 \end{align}
 
-
 Let's quantify the effective log-duration of a kernel by the Shannon entropy of
-its normalised version. The normalised kernel, in which $A$ no longer appears,
-is given by
+its normalised version. First, let's get the Shannon entropy of a subset of
+Beta distributions (those with $\beta=1$):
 \begin{align}
-K_{\rm normed}(t) &=
-    \frac{\alpha+1}{\ell+\delta}
-    \left\{
-        \begin{array}{lr}
-            0, & t < t_0 \\
-            \left(\frac{t - t_0}{\delta}\right)^\alpha, & t_0 \leq t < t_1 \\
-            \left(\frac{t_2 - t}{\ell}  \right)^\alpha, & t_1 \leq t < t_2 \\
-            0, & t \geq t_2.
-        \end{array}
-    \right.
+H
+    &= -\int_0^1 f(x) \log f(x) \, dx \\
+    &= -\int_0^1 \alpha x^{\alpha-1} \log \left(\alpha x^{\alpha-1}\right)
+            \, dx \\
+    &= -\int_0^1 \alpha x^{\alpha-1}
+                \Big[\log\alpha + (\alpha-1)\log x\Big] \, dx \\
+    &= -\log\alpha - \int_0^1 \alpha x^{\alpha-1}(\alpha-1)\log x \, dx.
 \end{align}
-Its Shannon entropy is
-\begin{align}
-H &= -\int K_{\rm normed}(t) \log K_{\rm normed}(t) \, dt.
-\end{align}
-This will split into a sum of the rising and falling parts, which are of
-similar form. The rising part is
-\begin{align}
-H_{\rm rise} &= -\int_{t_0}^{t_1}
-                    \left(\frac{\alpha+1}{\ell+\delta}\right)
-                    \left(\frac{t - t_0}{\delta}\right)^\alpha
-                    \Big[
-                        \log(\alpha + 1) - \log(\ell + \delta)
-                        + \alpha\log(t - t_0) - \alpha\log\delta
-                    \Big]
-                    \, dt.
-\end{align}
+According to {\tt sympy}, this isn't tractable without obscure special
+functions. Oh well.
 
 
 \end{document}
-
