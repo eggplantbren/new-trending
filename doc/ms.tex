@@ -63,5 +63,22 @@ I &= I_{\rm rise} + I_{\rm fall} \\
   &= \frac{A(\ell + \delta)}{\alpha + 1}.
 \end{align}.
 
+Let's quantify the effective log-duration of a kernel by the Shannon entropy of
+its normalised version. The normalised kernel, in which $A$ no longer appears,
+is given by
+\begin{align}
+K_{\rm normed}(t) &=
+    \frac{\alpha+1}{\ell+\delta}
+    \left\{
+        \begin{array}{lr}
+            0, & t < t_0 \\
+            \left(\frac{t - t_0}{\delta}\right)^\alpha, & t_0 \leq t < t_1 \\
+            \left(\frac{t_2 - t}{\ell}  \right)^\alpha, & t_1 \leq t < t_2 \\
+            0, & t \geq t_2.
+        \end{array}
+    \right.
+\end{align}
+
+
 \end{document}
 
