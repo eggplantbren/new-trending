@@ -14,7 +14,7 @@
 \newcommand{\btheta}{\boldsymbol{\theta}}
 \newcommand{\given}{\,|\,}
 
-\title{Kernel-Based LBRY Trending}
+\title{A Trending Algorithm for LBRY Based on Biexponential Kernels}
 \author{Brendon J. Brewer}
 \date{}
 
@@ -30,7 +30,9 @@
 Consider an LBC change from $x$ to $x'$ which occurs at time (height) $t_0$.
 At the moment, assume positive changes only, i.e., $x' > x$.
 Let $\delta$ be the delay, so the kernel peaks at time $t_1 = t_0 + \delta$.
-The kernel then returns to zero at time $t_2 = t_1 + \ell$.
+The kernel then decays exponentially. The interval
+of time from $t_0$ to $t_1$ is called the `rise', and from $t_1$ onwards it is
+the `fall'.
 
 Let the kernel due to this LBC change be of the form
 \begin{align}
@@ -38,60 +40,64 @@ K(t) &=
     \left\{
         \begin{array}{lr}
             0, & t < t_0 \\
-            A\left(\frac{t - t_0}{\delta}\right)^{\alpha-1}, & t_0 \leq t < t_1 \\
-            A\left(\frac{t_2 - t}{\ell}  \right)^{\alpha-1}, & t_1 \leq t < t_2 \\
-            0, & t \geq t_2.
+            A\exp\left(2\left(\frac{t - t_1}{\delta}\right)\right),
+                                                & t_0 \leq t < t_1 \\
+            A\exp\left(\frac{t_1 - t}{\ell}  \right),  & t \geq t_1.
         \end{array}
     \right.
 \end{align}
-The reason for making the exponents $(\alpha-1)$ instead of $\alpha$ is
-so I can make analogies to Beta distributions. The normalisation of Beta
-distributions is
-\begin{align}
-\int_0^1 x^{\alpha-1}(1-x)^{\beta-1} \, dx
-    &= \frac{\Gamma(\alpha)\Gamma(\beta)}{\Gamma(\alpha+\beta)}.
-\end{align}
-When $\beta=1$, this reduces to
-\begin{align}
-\int_0^1 x^{\alpha-1}(1-x)^{\beta-1} \, dx
-    &= \frac{\Gamma(\alpha)}{\Gamma(\alpha+1)} \\
-    &= \frac{1}{\alpha}.
-\end{align}
+The kernel rises from an initial value of $A\exp(-2) \approx 0.1A$ to a peak
+of $A$, and then decays with timescale $\ell$. The kernel parameters
+$(A, \delta, \ell)$ can depend on $x$ and $x'$, and potentially other things.
+
+%The reason for making the exponents $(\alpha-1)$ instead of $\alpha$ is
+%so I can make analogies to Beta distributions. The normalisation of Beta
+%distributions is
+%\begin{align}
+%\int_0^1 x^{\alpha-1}(1-x)^{\beta-1} \, dx
+%    &= \frac{\Gamma(\alpha)\Gamma(\beta)}{\Gamma(\alpha+\beta)}.
+%\end{align}
+%When $\beta=1$, this reduces to
+%\begin{align}
+%\int_0^1 x^{\alpha-1}(1-x)^{\beta-1} \, dx
+%    &= \frac{\Gamma(\alpha)}{\Gamma(\alpha+1)} \\
+%    &= \frac{1}{\alpha}.
+%\end{align}
 
 
-The integral of the rising part of the kernel is
-\begin{align}
-Z_{\rm rise} &= A\int_{t_0}^{t_0+\delta}
-                    \left(\frac{t - t_0}{\delta}\right)^{\alpha-1} \, dt
-\end{align}
-Letting $\tau = (t-t_0)/\delta$, this becomes
-\begin{align}
-Z_{\rm rise} &= A\delta\int_0^1
-                    \tau^{\alpha-1} \, d\tau \\
-             &= A\delta
-                    \frac{\Gamma(\alpha)\Gamma(1)}{\Gamma(\alpha+1)} \\
-             &= \frac{A\delta}{\alpha}.
-\end{align}
-The integral of the falling part, and therefore the total integral $Z$,
-can be obtained similarly. The total integral is
-\begin{align}
-Z &= \frac{A(\delta + \ell)}{\alpha}
-\end{align}
+%The integral of the rising part of the kernel is
+%\begin{align}
+%Z_{\rm rise} &= A\int_{t_0}^{t_0+\delta}
+%                    \left(\frac{t - t_0}{\delta}\right)^{\alpha-1} \, dt
+%\end{align}
+%Letting $\tau = (t-t_0)/\delta$, this becomes
+%\begin{align}
+%Z_{\rm rise} &= A\delta\int_0^1
+%                    \tau^{\alpha-1} \, d\tau \\
+%             &= A\delta
+%                    \frac{\Gamma(\alpha)\Gamma(1)}{\Gamma(\alpha+1)} \\
+%             &= \frac{A\delta}{\alpha}.
+%\end{align}
+%The integral of the falling part, and therefore the total integral $Z$,
+%can be obtained similarly. The total integral is
+%\begin{align}
+%Z &= \frac{A(\delta + \ell)}{\alpha}
+%\end{align}
 
-Let's quantify the effective log-duration of a kernel by the Shannon entropy of
-its normalised version. First, let's get the Shannon entropy of a subset of
-Beta distributions (those with $\beta=1$):
-\begin{align}
-H
-    &= -\int_0^1 f(x) \log f(x) \, dx \\
-    &= -\int_0^1 \alpha x^{\alpha-1} \log \left(\alpha x^{\alpha-1}\right)
-            \, dx \\
-    &= -\int_0^1 \alpha x^{\alpha-1}
-                \Big[\log\alpha + (\alpha-1)\log x\Big] \, dx \\
-    &= -\log\alpha - \int_0^1 \alpha x^{\alpha-1}(\alpha-1)\log x \, dx.
-\end{align}
-According to {\tt sympy}, this isn't tractable without obscure special
-functions. Oh well.
+%Let's quantify the effective log-duration of a kernel by the Shannon entropy of
+%its normalised version. First, let's get the Shannon entropy of a subset of
+%Beta distributions (those with $\beta=1$):
+%\begin{align}
+%H
+%    &= -\int_0^1 f(x) \log f(x) \, dx \\
+%    &= -\int_0^1 \alpha x^{\alpha-1} \log \left(\alpha x^{\alpha-1}\right)
+%            \, dx \\
+%    &= -\int_0^1 \alpha x^{\alpha-1}
+%                \Big[\log\alpha + (\alpha-1)\log x\Big] \, dx \\
+%    &= -\log\alpha - \int_0^1 \alpha x^{\alpha-1}(\alpha-1)\log x \, dx.
+%\end{align}
+%According to {\tt sympy}, this isn't tractable without obscure special
+%functions. Oh well.
 
 
 \end{document}
