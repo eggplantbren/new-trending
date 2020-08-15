@@ -50,12 +50,12 @@ def evaluate(ts, kernel):
     ys[fall] = A*np.exp((t1 - ts[fall])/ell)
     return ys
 
-kernel = [40.0, 3.2, 30.0, 500.0, 2.5]
+kernel = [40.0, 3.2, 30.0, 100.0, 2.5]
 t0, A, delta, ell, alpha = kernel
 
 ts = np.linspace(0, 1000.0, 100001)
 ys = evaluate(ts, kernel)
-#print(np.trapz(ys, x=ts), A*(delta + ell)/alpha)
+print(np.trapz(ys, x=ts), A*ell + 0.5*A*delta*(1.0 - np.exp(-2.0)))
 
 plt.plot(ts, ys)
 plt.show()

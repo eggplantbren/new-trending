@@ -50,54 +50,26 @@ The kernel rises from an initial value of $A\exp(-2) \approx 0.1A$ to a peak
 of $A$, and then decays with timescale $\ell$. The kernel parameters
 $(A, \delta, \ell)$ can depend on $x$ and $x'$, and potentially other things.
 
-%The reason for making the exponents $(\alpha-1)$ instead of $\alpha$ is
-%so I can make analogies to Beta distributions. The normalisation of Beta
-%distributions is
-%\begin{align}
-%\int_0^1 x^{\alpha-1}(1-x)^{\beta-1} \, dx
-%    &= \frac{\Gamma(\alpha)\Gamma(\beta)}{\Gamma(\alpha+\beta)}.
-%\end{align}
-%When $\beta=1$, this reduces to
-%\begin{align}
-%\int_0^1 x^{\alpha-1}(1-x)^{\beta-1} \, dx
-%    &= \frac{\Gamma(\alpha)}{\Gamma(\alpha+1)} \\
-%    &= \frac{1}{\alpha}.
-%\end{align}
-
-
-%The integral of the rising part of the kernel is
-%\begin{align}
-%Z_{\rm rise} &= A\int_{t_0}^{t_0+\delta}
-%                    \left(\frac{t - t_0}{\delta}\right)^{\alpha-1} \, dt
-%\end{align}
-%Letting $\tau = (t-t_0)/\delta$, this becomes
-%\begin{align}
-%Z_{\rm rise} &= A\delta\int_0^1
-%                    \tau^{\alpha-1} \, d\tau \\
-%             &= A\delta
-%                    \frac{\Gamma(\alpha)\Gamma(1)}{\Gamma(\alpha+1)} \\
-%             &= \frac{A\delta}{\alpha}.
-%\end{align}
-%The integral of the falling part, and therefore the total integral $Z$,
-%can be obtained similarly. The total integral is
-%\begin{align}
-%Z &= \frac{A(\delta + \ell)}{\alpha}
-%\end{align}
-
-%Let's quantify the effective log-duration of a kernel by the Shannon entropy of
-%its normalised version. First, let's get the Shannon entropy of a subset of
-%Beta distributions (those with $\beta=1$):
-%\begin{align}
-%H
-%    &= -\int_0^1 f(x) \log f(x) \, dx \\
-%    &= -\int_0^1 \alpha x^{\alpha-1} \log \left(\alpha x^{\alpha-1}\right)
-%            \, dx \\
-%    &= -\int_0^1 \alpha x^{\alpha-1}
-%                \Big[\log\alpha + (\alpha-1)\log x\Big] \, dx \\
-%    &= -\log\alpha - \int_0^1 \alpha x^{\alpha-1}(\alpha-1)\log x \, dx.
-%\end{align}
-%According to {\tt sympy}, this isn't tractable without obscure special
-%functions. Oh well.
+% In [5]: integrate(A*exp(2*(t - t1)/delta), (t, t0, t1))                         
+% Out[5]: -A*delta*exp((2*t0 - 2*t1)/delta)/2 + A*delta/2
+The integral of the rising part is
+\begin{align}
+Z_{\rm rise}
+    &= \int_{t_0}^{t_1} K(t) \, dt \\
+    &= \int_{t_0}^{t_1} A\exp\left(2\left(\frac{t - t_1}{\delta}\right)\right)\, dt\\
+    &= \frac{1}{2}A\delta\left(1 - \exp(-2)\right).
+\end{align}
+For the falling part, the integral is
+\begin{align}
+Z_{\rm fall}
+    &= \int_{t_1}^{\infty} A\exp\left(\frac{t_1 - t}{\ell}  \right) \, dt \\
+    &= A\ell.
+\end{align}
+Thus, the total integral is
+\begin{align}
+Z &= Z_{\rm rise} + Z_{\rm fall}
+  &= A\left[\ell + \frac{1}{2}A\delta\left(1 - \exp(-2)\right)\right].
+\end{align}
 
 
 \end{document}
