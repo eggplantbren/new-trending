@@ -3,49 +3,52 @@ Experimenting with kernels that ramp up starting immediately
 but have different shapes when the LBC values are different.
 """
 
-import math
 import matplotlib.pyplot as plt
 import numpy as np
+from soften import soften
 
-DECAY_TIME = 500
 DELAY_POWER = 0.4
-SOFTEN_POWER = 0.25
 
 class Kernel:
-
+    """
+    Gamma kernels
+    """
     def __init__(self, t0, old_lbc, new_lbc):
         self.t0, self.old_lbc, self.new_lbc = t0, old_lbc, new_lbc
 
-        # Derived parameters
-        self.delay = int(self.new_lbc**0.4)
-        self.t_peak = self.t0 + self.delay
-        self.t_final = self.t_peak + DECAY_TIME
-        self.y_peak = new_lbc**SOFTEN_POWER - old_lbc**SOFTEN_POWER
-        if self.new_lbc <= 10.0:
-            self.power = 1.0
-        else:
-            self.power = 1.0 + math.log2(self.new_lbc/10.0)
+        # Relative to t=0 for now
+        self.t_peak = new_lbc**DELAY_POWER
+        self.y_peak = soften(new_lbc) - soften(old_lbc)
+        self.sigma = 200.0
+        if new_lbc >= 1E3:
+            self.sigma /= 1.0 + np.log10(new_lbc/1E3)
+#        self.alpha = 1.1
 
+        c = self.t_peak/self.sigma
+        # x = a-1
+        # (2) ==> c = x/sqrt(x+1)
+        # c^2 = x^2/(x+1)
+        # x^2 = c^2(x+1)
+        # x^2 - c^2 x - c^2 = 0
+        # x = (c^2 +- sqrt(c^4 + 4c^2))/2
+        # x = 0.5*c^2 + 0.5*c*sqrt(c^2 + 4).
+        self.alpha = 1.0 + 0.5*c**2 + 0.5*c*np.sqrt(c**2 + 4.0)
+        self.beta = np.sqrt(self.alpha)/self.sigma
+        self.A = self.y_peak/self.t_peak**(self.alpha-1.0) \
+                            *np.exp(self.t_peak*self.beta)
+
+        # Add t0 back
+        self.t_peak += self.t0
 
     def evaluate(self, t):
+        lag = t - self.t0
+        if lag <= 0:
+            return 0.0
+        else:
+            return self.A*lag**(self.alpha-1.0)*np.exp(-self.beta*lag)
 
-        f = 0.0
-        if t >= self.t0 and t < self.t_peak:
-            f = 1.0 - (self.t_peak - t)/self.delay
-        if t >= self.t_peak and t < self.t_final:
-            f = 1.0 - (t - self.t_peak)/DECAY_TIME
-
-        # Protect against rounding errors making it negative
-        if f < 0.0:
-            f = 0.0
-
-        # Multiply in amplitude, also do the power
-        return self.y_peak*f**self.power
-
-    def __str__(self):
-        d = dict(t0=self.t0, t1=self.t_peak, t2=self.t_final,
-                 A=self.y_peak, delta=self.delay, ell=DECAY_TIME)
-        return d.__str__()
+    def print(self):
+        print(dict(A=self.A, alpha=self.alpha, beta=self.beta))
 
 
 class Claim:
@@ -70,8 +73,8 @@ class Claim:
         return sum([k.evaluate(height) for k in self.kernels])
 
 # Simulate trending scores
-claims = dict(minnow=Claim(), dolphin=Claim(), moderate_whale=Claim(),
-              huge_whale=Claim(), huge_whale_botted=Claim())
+claims = dict(dolphin=Claim(), moderate_whale=Claim(),
+              huge_whale=Claim(), minnow=Claim(), huge_whale_botted=Claim())
 trending = dict()
 for name in claims:
     trending[name] = []
@@ -100,14 +103,13 @@ for height in heights:
                 claims[name].update(height, claims[name].lbc[-1] + 1000000.0)
 
     # Remove all supports at a certain block
-    if height == 400:
-        for name in claims:
-            claims[name].lbc[-1] = claims[name].lbc[0]
-            claims[name].kernels = claims[name].kernels[0:1]
+#    if height == 700:
+#        for name in claims:
+#            claims[name].lbc[-1] = claims[name].lbc[0]
+#            claims[name].kernels = claims[name].kernels[0:1]
 
     for name in claims:
         trending[name].append([height, claims[name].sum_kernels(height)])
-
 
 for name in claims:
     trend = np.array(trending[name])

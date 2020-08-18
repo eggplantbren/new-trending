@@ -14,7 +14,7 @@
 \newcommand{\btheta}{\boldsymbol{\theta}}
 \newcommand{\given}{\,|\,}
 
-\title{A Trending Algorithm for LBRY Based on Biexponential Kernels}
+\title{A Trending Algorithm for LBRY Based on Gamma Kernels}
 \author{Brendon J. Brewer}
 \date{}
 
@@ -29,47 +29,25 @@
 
 Consider an LBC change from $x$ to $x'$ which occurs at time (height) $t_0$.
 At the moment, assume positive changes only, i.e., $x' > x$.
-Let $\delta$ be the delay, so the kernel peaks at time $t_1 = t_0 + \delta$.
-The kernel then decays exponentially. The interval
-of time from $t_0$ to $t_1$ is called the `rise', and from $t_1$ onwards it is
-the `fall'.
 
-Let the kernel due to this LBC change be of the form
-\begin{align}
-K(t) &=
-    \left\{
-        \begin{array}{lr}
-            0, & t < t_0 \\
-            A\exp\left(2\left(\frac{t - t_1}{\delta}\right)\right),
-                                                & t_0 \leq t < t_1 \\
-            A\exp\left(\frac{t_1 - t}{\ell}  \right),  & t \geq t_1.
-        \end{array}
-    \right.
-\end{align}
-The kernel rises from an initial value of $A\exp(-2) \approx 0.1A$ to a peak
-of $A$, and then decays with timescale $\ell$. The kernel parameters
-$(A, \delta, \ell)$ can depend on $x$ and $x'$, and potentially other things.
+% var = alpha/beta^2 --> beta = sqrt(alpha)/sigma
 
-% In [5]: integrate(A*exp(2*(t - t1)/delta), (t, t0, t1))                         
-% Out[5]: -A*delta*exp((2*t0 - 2*t1)/delta)/2 + A*delta/2
-The integral of the rising part is
+Let our gamma kernels be
+of the form
 \begin{align}
-Z_{\rm rise}
-    &= \int_{t_0}^{t_1} K(t) \, dt \\
-    &= \int_{t_0}^{t_1} A\exp\left(2\left(\frac{t - t_1}{\delta}\right)\right)\, dt\\
-    &= \frac{1}{2}A\delta\left(1 - \exp(-2)\right).
+y(t) = A t^{\alpha - 1}
+        \exp\left[-t\sqrt{\frac{\alpha}{\sigma^2}}\right].
 \end{align}
-For the falling part, the integral is
+The peak time, if it exists, is
 \begin{align}
-Z_{\rm fall}
-    &= \int_{t_1}^{\infty} A\exp\left(\frac{t_1 - t}{\ell}  \right) \, dt \\
-    &= A\ell.
+t_{\rm peak} &= \sigma\left(\frac{\alpha-1}{\sqrt{\alpha}}\right).
 \end{align}
-Thus, the total integral is
+The value of $y(t)$ at its peak is
 \begin{align}
-Z &= Z_{\rm rise} + Z_{\rm fall}
-  &= A\left[\ell + \frac{1}{2}A\delta\left(1 - \exp(-2)\right)\right].
+y_{\rm peak} &= A t_{\rm peak}^{\alpha - 1}
+        \exp\left[-t_{\rm peak}\sqrt{\frac{\alpha}{\sigma^2}}\right]
 \end{align}
+which can easily be solved for $A$.
 
 
 \end{document}
