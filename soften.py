@@ -2,9 +2,9 @@ import math
 
 def soften(lbc):
     """
-    Nonlinear softening function. Is linear at low values.
+    Nonlinear softening function.
     """
-    return lbc**0.25 #math.log10(lbc + 0.01)
+    return lbc**0.2 #math.log10(lbc + 1.0)
 
 #    if lbc < 100.0:
 #        return 0.01*lbc**1.0

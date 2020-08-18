@@ -19,9 +19,9 @@ class Kernel:
         # Relative to t=0 for now
         self.t_peak = new_lbc**DELAY_POWER
         self.y_peak = soften(new_lbc) - soften(old_lbc)
-        self.sigma = 200.0
+        self.sigma = 300.0
         if new_lbc >= 1E3:
-            self.sigma /= 1.0 + np.log10(new_lbc/1E3)
+            self.sigma /= 1.0 + np.log2(new_lbc/1E3)
 #        self.alpha = 1.1
 
         c = self.t_peak/self.sigma
