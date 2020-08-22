@@ -14,7 +14,7 @@
 \newcommand{\btheta}{\boldsymbol{\theta}}
 \newcommand{\given}{\,|\,}
 
-\title{A Trending Algorithm for LBRY Based on Gamma Kernels}
+\title{A Trending Algorithm for LBRY Based on Sèrsic Kernels}
 \author{Brendon J. Brewer}
 \date{}
 
@@ -32,22 +32,14 @@ At the moment, assume positive changes only, i.e., $x' > x$.
 
 % var = alpha/beta^2 --> beta = sqrt(alpha)/sigma
 
-Let our gamma kernels be
-of the form
+Let our Sèrsic kernels be of the form
 \begin{align}
-y(t) = A t^{\alpha - 1}
-        \exp\left[-t\sqrt{\frac{\alpha}{\sigma^2}}\right].
+y(t) = A \exp\left[-\left(\frac{(t - t_{\rm peak})^2 + r_c^2}{L^2}\right)
+                        ^{\frac{1}{2n}}\right].
 \end{align}
-The peak time, if it exists, is
-\begin{align}
-t_{\rm peak} &= \sigma\left(\frac{\alpha-1}{\sqrt{\alpha}}\right).
-\end{align}
-The value of $y(t)$ at its peak is
-\begin{align}
-y_{\rm peak} &= A t_{\rm peak}^{\alpha - 1}
-        \exp\left[-t_{\rm peak}\sqrt{\frac{\alpha}{\sigma^2}}\right]
-\end{align}
-which can easily be solved for $A$.
+The five parameters are the amplitude $A$, peak time $t_{\rm peak}$,
+core radius $r_c$, length scale $L$, and Sèrsic index (shape parameter) $n$.
+
 
 
 \end{document}

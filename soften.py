@@ -4,7 +4,7 @@ def soften(lbc):
     """
     Nonlinear softening function.
     """
-    return lbc**0.2 #math.log10(lbc + 1.0)
+    return lbc**0.25 #math.log10(lbc + 1.0)
 
 #    if lbc < 100.0:
 #        return 0.01*lbc**1.0

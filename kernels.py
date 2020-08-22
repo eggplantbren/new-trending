@@ -9,43 +9,39 @@ from soften import soften
 
 DELAY_POWER = 0.4
 
+
+## IDEA: One kernel that takes into account all recent supports/changes.
+## When a block happens with no LBC change, just evaluate the kernel at a different
+## time point. When an LBC change occurs, recompute the kernel.
+
 class Kernel:
     """
-    Gamma kernels
+    Sèrsic Kernels
     """
     def __init__(self, t0, old_lbc, new_lbc):
         self.t0, self.old_lbc, self.new_lbc = t0, old_lbc, new_lbc
 
-        # Relative to t=0 for now
+        # Five Sèrsic parametrs
+        self.A = soften(new_lbc) - soften(old_lbc)
         self.t_peak = new_lbc**DELAY_POWER
-        self.y_peak = soften(new_lbc) - soften(old_lbc)
-        self.sigma = 300.0
-        if new_lbc >= 1E3:
-            self.sigma /= 1.0 + np.log2(new_lbc/1E3)
-#        self.alpha = 1.1
-
-        c = self.t_peak/self.sigma
-        # x = a-1
-        # (2) ==> c = x/sqrt(x+1)
-        # c^2 = x^2/(x+1)
-        # x^2 = c^2(x+1)
-        # x^2 - c^2 x - c^2 = 0
-        # x = (c^2 +- sqrt(c^4 + 4c^2))/2
-        # x = 0.5*c^2 + 0.5*c*sqrt(c^2 + 4).
-        self.alpha = 1.0 + 0.5*c**2 + 0.5*c*np.sqrt(c**2 + 4.0)
-        self.beta = np.sqrt(self.alpha)/self.sigma
-        self.A = self.y_peak/self.t_peak**(self.alpha-1.0) \
-                            *np.exp(self.t_peak*self.beta)
-
-        # Add t0 back
-        self.t_peak += self.t0
+        self.rc = 0.0
+        if new_lbc < 100.0:
+#            log10_L = np.log10(200.0)
+            self.n = 0.5
+        else:
+#            log10_L = np.log10(200.0) - np.log10(new_lbc/100.0)
+            self.n = 0.5 + np.log10(new_lbc/100.0)
+        print(self.n)
+        self.L = 200.0 #10.0**log10_L
 
     def evaluate(self, t):
         lag = t - self.t0
-        if lag <= 0:
-            return 0.0
-        else:
-            return self.A*lag**(self.alpha-1.0)*np.exp(-self.beta*lag)
+#        if np.abs(lag) >= 5.0*self.L:
+#            return 0.0
+#        else:
+        rsq = (t - self.t_peak)**2 + self.rc**2
+        return self.A*np.exp(-(rsq/self.L**2)**(0.5/self.n))
+
 
     def print(self):
         print(dict(A=self.A, alpha=self.alpha, beta=self.beta))
