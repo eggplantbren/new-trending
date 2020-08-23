@@ -4,14 +4,18 @@ def soften(lbc):
     """
     Nonlinear softening function.
     """
-    return lbc**0.25 #math.log10(lbc + 1.0)
-
-#    if lbc < 100.0:
-#        return 0.01*lbc**1.0
-#    elif lbc < 1000.0:
-#        return 0.1*lbc**0.5
-#    elif lbc < 10000.0:
-#        return lbc**0.25
+    if lbc < 1E2:
+        return (lbc/1E2)           # Maxes out at 1
+    elif lbc < 1E3:
+        return (lbc/1E2)**0.5      # Maxes out at 10^(1/2)
+    elif lbc < 1E4:
+        return 3.1622776601683795*(lbc/1E3)**0.33333333  # Maxes out at 10^(5/6)
+    elif lbc < 1E5:
+        return 6.812920690579613*(lbc/1E4)**0.25   # Maxes out at 10^(13/12)
+    elif lbc < 1E6:
+        return 12.115276586285882*(lbc/1E5)**0.2   # Maxes out at 10^(77/60)
+    else:
+        return 19.20141938638802*(lbc/1E6)**0.16666667
 
 
 if __name__ == "__main__":
